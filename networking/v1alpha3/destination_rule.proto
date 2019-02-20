@@ -138,8 +138,8 @@ message TrafficPolicy {
   // Settings controlling eviction of unhealthy hosts from the load balancing pool
   OutlierDetection outlier_detection = 3;
 
-  // TLS related settings for connections to the upstream service.
-  TLSSettings tls = 4;
+  // Encryption related settings for connections to the upstream service.
+  EncryptionSetting encryption = 4;
 
   // Traffic policies that apply to specific ports of the service
   message PortTrafficPolicy {
@@ -161,8 +161,8 @@ message TrafficPolicy {
     // Settings controlling eviction of unhealthy hosts from the load balancing pool
     OutlierDetection outlier_detection = 4;
 
-    // TLS related settings for connections to the upstream service.
-    TLSSettings tls = 5;
+    // Encryption related settings for connections to the upstream service.
+    EncryptionSetting encryption = 5;
   }
 
   // Traffic policies specific to individual ports. Note that port level
@@ -582,4 +582,32 @@ message TLSSettings {
 
   // SNI string to present to the server during TLS handshake.
   string sni = 6;
+}
+
+// Other encryption (other than TLS)
+message OtherEncryption {
+  // identify the type of encryption
+  enum Type {
+     // ALTS
+     ALTS = 0;
+
+     // other custom
+     CUSTOM = 1;
+  };
+
+  Type type = 1;
+
+  // in case of CUSTOM, the name
+  string custom_name = 2;
+
+}
+
+message EncryptionSetting {
+  oneof params {
+    // Set if TLS is used.
+    TLSSettings tls = 1;
+
+    // Set if other encryption used
+    OtherEncryption other = 2;
+  }
 }

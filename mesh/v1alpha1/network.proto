@@ -65,7 +65,7 @@ message Network {
 
   // The gateway associated with this network. Traffic from remote networks
   // will arrive at the specified gateway:port. All incoming traffic must
-  // use mTLS.
+  // use mTLS or similar encypted connection (e.g. ALTS).
   message IstioNetworkGateway {
     oneof gw {
       // A fully qualified domain name of the gateway service.  Pilot will
@@ -86,6 +86,9 @@ message Network {
 
     // The locality associated with an explicitly specified gateway (i.e. ip)
     string locality = 4;
+
+    // optional: encryption type if not mTLS (e.g. "ALTS")
+    string encryption_type = 5;
   }
 
   // REQUIRED: Set of gateways associated with the network.
