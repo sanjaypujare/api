@@ -20,20 +20,31 @@ package istio.mesh.v1alpha1;
 
 option go_package="istio.io/api/mesh/v1alpha1";
 
-// AuthenticationPolicy defines authentication policy. It can be set for
+// AuthenticationPolicyKind defines authentication policy. It can be set for
 // different scopes (mesh, service …), and the most narrow scope with
 // non-INHERIT value will be used.
 // Mesh policy cannot be INHERIT.
-enum AuthenticationPolicy {
+enum AuthenticationPolicyKind {
   // Do not encrypt Envoy to Envoy traffic.
   NONE = 0;
 
   // Envoy to Envoy traffic is wrapped into mutual TLS connections.
   MUTUAL_TLS = 1;
 
+  // Envoy to Envoy traffic is wrapped into another encrypted connection (e.g. ALTS)
+  CUSTOM_ENCRYPTION = 2;
+
   // Use the policy defined by the parent scope. Should not be used for mesh
   // policy.
   INHERIT = 1000;
+}
+
+message AuthenticationPolicy {
+  // which authentication policy is being used
+  AuthenticationPolicyKind kind = 1;
+
+  // actual name in case kind is CUSTOM_ENCRYPTION e.g. "ALTS"
+  string custom_name = 2;
 }
 
 // Tracing defines configuration for the tracing performed by Envoy instances.
@@ -78,7 +89,8 @@ message Tracing {
 }
 
 
-// ProxyConfig defines variables for individual Envoy instances.
+// ProxyConfig defines variables for individual Envoy instances when Envoy is present
+// In proxyless mode Envoy is not present but some of these settings will be used
 message ProxyConfig {
   // Path to the generated configuration file directory.
   // Proxy agent generates the actual configuration and stores it in this directory.
@@ -165,9 +177,12 @@ message ProxyConfig {
     // filtering and manipulation. This mode also configures the sidecar to run with the
     // CAP_NET_ADMIN capability, which is required to use TPROXY.
     TPROXY = 1;
+
+    // In proxyless mode there is no redirection needed since there is no Envoy proxy!
+    NONE = 2;
   }
 
-  // The mode used to redirect inbound traffic to Envoy.
+  // The mode used to redirect inbound traffic to Envoy (when Envoy is present).
   InboundInterceptionMode interception_mode = 18;
 
   // Tracing configuration to be used by the proxy.

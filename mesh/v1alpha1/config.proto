@@ -28,8 +28,8 @@ package istio.mesh.v1alpha1;
 
 option go_package="istio.io/api/mesh/v1alpha1";
 
-// MeshConfig defines mesh-wide variables shared by all Envoy instances in the
-// Istio service mesh.
+// MeshConfig defines mesh-wide variables shared by all Envoy (or Managed gRPC)
+// instances in the Istio service mesh.
 //
 // NOTE: This configuration type should be used for the low-level global
 // configuration, such as component addresses and port numbers. It should not
@@ -38,7 +38,7 @@ option go_package="istio.io/api/mesh/v1alpha1";
 // and replaced with several individual configuration types (for example,
 // tracing configuration).
 message MeshConfig {
-  // Address of the server that will be used by the proxies for policy
+  // Address of the server that will be used by the proxies or MgRPC for policy
   // check calls. By using different names for mixerCheckServer and
   // mixerReportServer, it is possible to have one set of mixer servers handle
   // policy check calls while another set of mixer servers handle telemetry
@@ -61,11 +61,11 @@ message MeshConfig {
   // to connect to Mixer.
   bool policy_check_fail_open = 25;
 
-  // Enable session affinity for envoy mixer reports so that calls from a proxy will
+  // Enable session affinity for envoy/MgRPC mixer reports so that calls will
   // always target the same mixer instance.
   bool sidecar_to_telemetry_session_affinity = 30;
 
-  // Port on which Envoy should listen for incoming connections from
+  // Port on which Envoy or MgRPC should listen for incoming connections from
   // other services.
   int32 proxy_listen_port = 4;
 
@@ -112,6 +112,7 @@ message MeshConfig {
   enum AuthPolicy {
     NONE = 0;
     MUTUAL_TLS = 1;
+    CUSTOM = 2;  // e.g. ALTS
   }
 
   // $hide_from_docs
@@ -146,6 +147,7 @@ message MeshConfig {
   // In case of Kubernetes, the proxy config is applied once during the injection process,
   // and remain constant for the duration of the pod. The rest of the mesh config can be changed
   // at runtime and config gets distributed dynamically.
+  // In proxyless mode this config applies to MgRPC as a default config
   ProxyConfig default_config = 14;
 
   reserved 15;
@@ -183,7 +185,7 @@ message MeshConfig {
   // Enables clide side policy checks.
   bool enable_client_side_policy_check = 19;
 
-  // Unix Domain Socket through which envoy communicates with NodeAgent SDS to get key/cert for mTLS.
+  // Unix Domain Socket through which envoy (or MgRPC) communicates with NodeAgent SDS to get key/cert for mTLS.
   // Use secret-mount files instead of SDS if set to empty.
   string sds_uds_path = 20;
 
